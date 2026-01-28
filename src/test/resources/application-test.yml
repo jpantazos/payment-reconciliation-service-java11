@@ -1,0 +1,32 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    
+  sql:
+    init:
+      mode: never
+
+reconciliation:
+  batch-size: 10
+  max-attempts: 5
+  stale-threshold-minutes: 1
+  scheduler:
+    enabled: false
+
+provider:
+  mock:
+    failure-rate: 0.0
+    latency-ms: 0
+
+logging:
+  level:
+    root: WARN
+    com.fintech.reconciliation: DEBUG

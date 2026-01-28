@@ -1,0 +1,153 @@
+spring:
+  application:
+    name: payment-reconciliation-service
+
+  # H2 embedded file-based database (data persists across restarts)
+  datasource:
+    url: jdbc:h2:file:./data/reconciliation;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  # JPA/Hibernate settings
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
+
+  # H2 Console for development (disable in production!)
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+# Reconciliation Service Configuration
+reconciliation:
+  # Number of transactions to process per batch
+  batch-size: 100
+  
+  # Maximum reconciliation attempts before flagging for manual review
+  max-attempts: 5
+  
+  # Only reconcile transactions not updated in the last X minutes
+  stale-threshold-minutes: 5
+  
+  scheduler:
+    # Enable/disable automatic reconciliation
+    enabled: true
+    # Interval between reconciliation runs (milliseconds)
+    # Default: 5 minutes = 300000ms
+    interval-ms: 300000
+
+# Mock Provider Configuration
+provider:
+  mock:
+    # Simulated failure rate (0.0 to 1.0)
+    failure-rate: 0.05
+    # Simulated network latency (milliseconds)
+    latency-ms: 50
+
+# Actuator endpoints for monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+# Logging configuration
+logging:
+  level:
+    root: INFO
+    com.fintech.reconciliation: DEBUG
+    org.springframework.transaction: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# Server configuration
+server:
+  port: 8080
+  error:
+    include-message: always
+    include-binding-errors: always
+
+---
+# Production profile
+spring:
+  config:
+    activate:
+      on-profile: production
+
+  # PostgreSQL configuration for production
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:reconciliation}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  # Disable H2 console in production
+  h2:
+    console:
+      enabled: false
+
+reconciliation:
+  batch-size: 500
+  scheduler:
+    interval-ms: 60000  # 1 minute in production
+
+provider:
+  mock:
+    failure-rate: 0.0
+    latency-ms: 0
+
+logging:
+  level:
+    root: WARN
+    com.fintech.reconciliation: INFO
+
+---
+# Docker profile
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+  datasource:
+    url: jdbc:postgresql://postgres:5432/reconciliation
+    username: postgres
+    password: postgres
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  h2:
+    console:
+      enabled: false
