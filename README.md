@@ -1,5 +1,16 @@
 # Payment Reconciliation Service
 
+## Tech Stack
+
+- Java 11
+- Apache Maven
+- Swagger UI 
+- H2 Embedded Database
+- Docker
+- Prometheus
+- Lombok
+- Spring Boot (Java)
+
 ## Swagger UI 
 
 - URL: http://localhost:8080/swagger-ui/index.html
@@ -13,7 +24,7 @@ mvn spring-boot:run
 docker-compose up -d
 ```
 
-- Design Decisions: The README-md file explains the service layer pattern for testability, the mock provider interface that allows easy swapping with real providers like Stripe or Adyen, why scheduled reconciliation uses fixedDelay to prevent overlap, and the status mapping logic from provider statuses to internal statuses.
+- Design Decisions: The README file explains the service layer pattern for testability, the mock provider interface that allows easy swapping with real providers like Stripe or Adyen, why scheduled reconciliation uses fixedDelay to prevent overlap, and the status mapping logic from provider statuses to internal statuses.
 - Scalability: This section covers pagination-based batch processing with configurable batch sizes, cursor-based pagination recommendations for production, a message queue architecture diagram showing how Kafka workers could handle parallel processing, database optimization strategies including partitioning and read replicas, and throughput estimates ranging from 1,000 transactions per minute on a single instance up to 50,000 with Kafka and multiple workers.
 - Resilience & Idempotency: The documentation details optimistic locking via the @Version annotation that prevents concurrent modifications, the AtomicBoolean mutex that prevents overlapping reconciliation runs, conditional status updates that only occur when the provider status actually differs from the current state, retry with exponential backoff configured for 3 attempts with delays of 1 second, 2 seconds, and 4 seconds, and circuit breaker configuration that opens at 50% failure rate.
 - Monitoring: This section includes a table of custom Micrometer metrics like reconciliation.transactions.total and reconciliation.provider.errors, recommended alerting thresholds for conditions like high error rates and provider API outages, specific log patterns to track for debugging, and Grafana dashboard panel recommendations.
